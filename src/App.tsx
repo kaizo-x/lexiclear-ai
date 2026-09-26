@@ -1,11 +1,12 @@
-import { ErrorBoundary } from './components/common/ErrorBoundary';
-import { Header } from './components/common/Header';
-import { Footer } from './components/common/Footer';
-import { Sidebar } from './components/sidebar/Sidebar';
-import { DocumentReader } from './components/reader/DocumentReader';
-import { InsightsHub } from './components/copilot/InsightsHub';
-import { ClauseDetailModal } from './components/modals/ClauseDetailModal';
-import { useDocument } from './hooks/useDocument';
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
+import { Header } from "./components/common/Header";
+import { Footer } from "./components/common/Footer";
+import { Sidebar } from "./components/sidebar/Sidebar";
+import { DocumentReader } from "./components/reader/DocumentReader";
+import { InsightsHub } from "./components/copilot/InsightsHub";
+import { ClauseDetailModal } from "./components/modals/ClauseDetailModal";
+import { useDocument } from "./hooks/useDocument";
+import { Clause } from "./types/legal";
 
 export function LexiClearApp() {
   const {
@@ -26,7 +27,9 @@ export function LexiClearApp() {
   } = useDocument();
 
   const handleSelectClauseByTag = (tag: string) => {
-    const clause = activeDocument.clauses.find((c) => c.sectionTag === tag);
+    const clause = activeDocument.clauses.find(
+      (c: Clause) => c.sectionTag === tag,
+    );
     if (clause) {
       setSelectedClauseId(clause.id);
     }
@@ -36,7 +39,10 @@ export function LexiClearApp() {
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col bg-white dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500 selection:text-white overflow-x-hidden">
         {/* Header */}
-        <Header activeDocTitle={activeDocument.title} overallScore={riskMetrics.score} />
+        <Header
+          activeDocTitle={activeDocument.title}
+          overallScore={riskMetrics.score}
+        />
 
         {/* Main Three-Pane SaaS Architecture Layout */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-[calc(100vh-8rem)]">
