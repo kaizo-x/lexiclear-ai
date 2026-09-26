@@ -15,7 +15,7 @@ export function useDocument() {
       {
         id: 'msg-1',
         sender: 'ASSISTANT',
-        text: 'Welcome to LexiClear Copilot! I have analyzed "Freelance Mutual NDA & IP Transfer.docx". I detected 4 High-Risk items including a 5-year global non-compete and uncapped indemnification. How can I assist you?',
+        text: 'Namaste! I have analyzed the "Freelance NDA & IP Assignment — Mumbai.docx" under Indian law. I detected 4 High-Risk clauses:\n\n• CLAUSE-2.1: 3-year non-compete likely void under Section 27, Indian Contract Act 1872\n• CLAUSE-3.1: IP assignment without payment — challenge under Copyright Act 1957\n• CLAUSE-4.1 & 4.2: Uncapped liability + INR 5,000 company cap — commercially unreasonable\n\nHow can I assist you?',
         timestamp: '13:40',
         citedClauseTags: ['CLAUSE-2.1', 'CLAUSE-4.1'],
       },

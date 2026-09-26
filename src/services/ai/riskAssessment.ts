@@ -1,107 +1,127 @@
-import { Clause, RiskLevel, RiskCategory } from '../../types/legal';
+import { GoogleGenAI } from "@google/genai";
+import { Clause } from "../../types/legal";
 
-export interface RiskAnalysisResult {
-  riskLevel: RiskLevel;
-  category: RiskCategory;
-  reasoning: string;
-  recommendation: string;
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+const ai = new GoogleGenAI({ apiKey });
+
+/**
+ * 1. Synchronous analysis helper used by unit tests & fallback parser.
+ */
+export function analyzeClauseRisk(clauseText: string): {
+  riskLevel: "HIGH" | "AMBIGUOUS" | "GREEN";
+  category: string;
+} {
+  const text = clauseText.toLowerCase();
+
+  if (
+    text.includes("indemn") ||
+    text.includes("penalt") ||
+    text.includes("unilateral") ||
+    text.includes("liabil")
+  ) {
+    return { riskLevel: "HIGH", category: "INDEMNIFICATION" };
+  }
+  if (
+    text.includes("terminat") ||
+    text.includes("arbitrat") ||
+    text.includes("damages") ||
+    text.includes("governing law")
+  ) {
+    return { riskLevel: "AMBIGUOUS", category: "GOVERNING_LAW" };
+  }
+  return { riskLevel: "GREEN", category: "GENERAL" };
 }
 
 /**
- * GenAI Engine Parameter: Risk & Obligation Assessment Pipeline
- * Analyzes clauses to assign risk levels (HIGH, AMBIGUOUS, GREEN) and actionable recommendations.
+ * 2. Raw text parser required by useDocument.ts and local state builders.
  */
-export function analyzeClauseRisk(clauseText: string): RiskAnalysisResult {
-  const lower = clauseText.toLowerCase();
+export function parseRawTextIntoClauses(rawText: string): Clause[] {
+  const paragraphs = rawText
+    .split(/\n\s*\n/)
+    .filter((p) => p.trim().length > 0);
+  let currentLine = 1;
 
-  // High Risk Indicators
-  if (lower.includes('uncapped') || lower.includes('indemnify') || lower.includes('hold harmless') || lower.includes('5 years') || lower.includes('regardless of whether payment')) {
-    let category: RiskCategory = 'LIABILITY';
-    if (lower.includes('indemnify')) category = 'INDEMNIFICATION';
-    else if (lower.includes('5 years') || lower.includes('non-compete')) category = 'TERMINATION';
-    else if (lower.includes('payment') || lower.includes('assigns')) category = 'INTELLECTUAL_PROPERTY';
+  return paragraphs.map((p, i) => {
+    const analysis = analyzeClauseRisk(p);
+    const mappedRiskLevel =
+      analysis.riskLevel === "AMBIGUOUS" ? "AMBER" : analysis.riskLevel;
+    const lineCount = p.split("\n").length;
+    const lineStart = currentLine;
+    const lineEnd = currentLine + lineCount - 1;
+    currentLine = lineEnd + 1;
 
     return {
-      riskLevel: 'HIGH',
-      category,
-      reasoning: 'Clause introduces significant financial liability, severe post-termination restrictions, or unconditional IP transfer.',
-      recommendation: 'Negotiate liability caps, limit scope to direct competitors, and make IP transfer contingent on payment.'
-    };
-  }
-
-  // Ambiguous Risk Indicators
-  if (lower.includes('jurisdiction') || lower.includes('governing law') || lower.includes('sole discretion') || lower.includes('maintenance')) {
-    return {
-      riskLevel: 'AMBIGUOUS',
-      category: lower.includes('jurisdiction') ? 'GOVERNING_LAW' : 'LIABILITY',
-      reasoning: 'Clause contains open-ended language or out-of-state legal venue requirements.',
-      recommendation: 'Request explicit clarity, local arbitration venue, or objective standards.'
-    };
-  }
-
-  // Green / Standard Favorable Indicators
-  return {
-    riskLevel: 'GREEN',
-    category: 'CONFIDENTIALITY',
-    reasoning: 'Standard commercial term aligned with standard market benchmark practices.',
-    recommendation: 'Acceptable as written.'
-  };
+      id: `c-${i + 1}`,
+      title: `Clause ${i + 1}`,
+      sectionTag: `Section ${i + 1}`,
+      originalText: p.trim(),
+      simplifiedText: p.trim(),
+      category: analysis.category as any,
+      riskLevel: mappedRiskLevel as any,
+      riskReason: `Analyzed clause risk: ${mappedRiskLevel}`,
+      explanation: `Analysis for clause ${i + 1}`,
+      mitigation:
+        mappedRiskLevel === "HIGH"
+          ? "Review with legal counsel prior to signing."
+          : "Standard commercial term.",
+      recommendation:
+        mappedRiskLevel === "HIGH"
+          ? "Propose revision to limit liability."
+          : "Accept term as drafted.",
+      impactLevel:
+        mappedRiskLevel === "HIGH"
+          ? "HIGH"
+          : mappedRiskLevel === "AMBER"
+            ? "MEDIUM"
+            : "LOW",
+      actionableAdvice:
+        mappedRiskLevel === "HIGH"
+          ? "Negotiate or remove clause."
+          : "Accept as standard.",
+      lineStart,
+      lineEnd,
+    } as Clause;
+  });
 }
 
-export function parseRawTextIntoClauses(rawDocumentText: string): Clause[] {
-  if (!rawDocumentText) return [];
+/**
+ * 3. Live Google Gemini API Integration.
+ */
+export async function analyzeContractRisks(documentText: string) {
+  try {
+    const prompt = `You are an expert Indian commercial and technology lawyer. Analyze the following legal document under Indian law and return a strict JSON object with an overall risk score (0-100) and an array of clause risk breakdowns. Reference relevant Indian statutes where applicable (e.g., Indian Contract Act 1872, Copyright Act 1957, Arbitration and Conciliation Act 1996, MSMED Act 2006, IT Act 2000, EPF Act 1952).
 
-  const lines = rawDocumentText.split('\n');
-  const clauses: Clause[] = [];
-  let currentTitle = '';
-  let currentBuffer = '';
-  let lineStart = 1;
-  let clauseIndex = 1;
-
-  lines.forEach((line, idx) => {
-    const trimmed = line.trim();
-    if (trimmed.match(/^(SECTION|\d+\.|\bCLAUSE\b)/i) || trimmed.toUpperCase() === trimmed && trimmed.length > 5) {
-      if (currentBuffer.length > 20) {
-        const analysis = analyzeClauseRisk(currentBuffer);
-        clauses.push({
-          id: `custom-c-${clauseIndex}`,
-          sectionTag: `CLAUSE-${clauseIndex}.0`,
-          title: currentTitle || `Legal Section ${clauseIndex}`,
-          originalText: currentBuffer.trim(),
-          simplifiedText: `Plain English: ${currentBuffer.slice(0, 100)}...`,
-          riskLevel: analysis.riskLevel,
-          category: analysis.category,
-          riskReason: analysis.reasoning,
-          recommendation: analysis.recommendation,
-          lineStart,
-          lineEnd: idx,
-        });
-        clauseIndex++;
-      }
-      currentTitle = trimmed;
-      currentBuffer = '';
-      lineStart = idx + 1;
-    } else {
-      currentBuffer += ' ' + trimmed;
+Expected JSON Structure:
+{
+  "overallRiskScore": 75,
+  "clauses": [
+    {
+      "id": "c1",
+      "title": "Clause Title",
+      "originalText": "exact clause excerpt",
+      "riskLevel": "HIGH",
+      "explanation": "Detailed explanation of legal risk under Indian law, citing relevant statutes",
+      "mitigation": "Recommended negotiation tactic or alternative clause aligned with Indian commercial practice"
     }
-  });
+  ]
+}
 
-  if (currentBuffer.length > 20) {
-    const analysis = analyzeClauseRisk(currentBuffer);
-    clauses.push({
-      id: `custom-c-${clauseIndex}`,
-      sectionTag: `CLAUSE-${clauseIndex}.0`,
-      title: currentTitle || `Legal Section ${clauseIndex}`,
-      originalText: currentBuffer.trim(),
-      simplifiedText: `Plain English: ${currentBuffer.slice(0, 100)}...`,
-      riskLevel: analysis.riskLevel,
-      category: analysis.category,
-      riskReason: analysis.reasoning,
-      recommendation: analysis.recommendation,
-      lineStart,
-      lineEnd: lines.length,
+Legal Document Text (assess under Indian jurisdiction):
+${documentText}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      },
     });
-  }
 
-  return clauses;
+    if (response.text) {
+      return JSON.parse(response.text);
+    }
+  } catch (error) {
+    console.error("Gemini Risk Analysis Error:", error);
+  }
+  return null;
 }

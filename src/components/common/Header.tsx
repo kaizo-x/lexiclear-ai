@@ -1,5 +1,5 @@
 import React from 'react';
-import { Scale, Sun, Moon, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Scale, Sun, Moon, Shield } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 
 interface HeaderProps {
@@ -10,99 +10,69 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ activeDocTitle, overallScore }) => {
   const { toggleTheme, isDark } = useTheme();
 
+  const scoreColor =
+    overallScore !== undefined
+      ? overallScore >= 70
+        ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+        : overallScore >= 40
+        ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+        : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+      : '';
+
   return (
-    <header 
+    <header
       role="banner"
-      className="border-b border-stone-200/80 dark:border-stone-800 bg-white/95 dark:bg-[#0F0D0E]/95 backdrop-blur-md px-6 py-3 sticky top-0 z-40 transition-colors space-y-2.5 shadow-sm"
+      className="h-14 border-b border-slate-700/60 bg-[#0F172A]/95 backdrop-blur-md px-5 flex items-center justify-between sticky top-0 z-40 shadow-[0_1px_0_0_rgba(99,102,241,0.08)]"
     >
-      {/* Top Row: Brand & Main Navigation Controls */}
-      <div className="flex items-center justify-between">
-        {/* Left: Judicial Brand Identity */}
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-amber-600 rounded-2xl shadow-md shadow-amber-600/15 text-white flex items-center justify-center">
-            <Scale className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-serif font-bold text-lg tracking-tight text-stone-900 dark:text-stone-50">
-                LexiClear Judicial AI
-              </span>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                Courtroom Chambers
-              </span>
-            </div>
-            <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium hidden sm:block">
-              Contract Intelligence & Judicial Case Assessment
-            </p>
-          </div>
+      {/* Left: Brand */}
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center shadow-indigo-glow shrink-0">
+          <Scale className="w-4 h-4 text-white" />
         </div>
-
-        {/* Center: Active Case Docket Status */}
-        {activeDocTitle && (
-          <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-stone-100/80 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-mono font-medium text-stone-700 dark:text-stone-300 truncate max-w-[240px]">
-              Case Docket: {activeDocTitle}
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-sm tracking-tight text-white">
+              LexiClear AI
             </span>
-            {overallScore !== undefined && (
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                overallScore >= 70 
-                  ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' 
-                  : overallScore >= 40 
-                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' 
-                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-              }`}>
-                Objection Risk: {overallScore}/100
-              </span>
-            )}
+            <span className="hidden sm:inline text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/25">
+              India Legal
+            </span>
           </div>
-        )}
-
-        {/* Right: Controls & Theme Toggle */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-stone-100/80 dark:bg-stone-900 text-stone-600 dark:text-stone-300 text-xs font-medium border border-stone-200/80 dark:border-stone-800">
-            <ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            <span>WCAG AA Ready</span>
-          </div>
-
-          {/* Theme Switcher Toggle */}
-          <button
-            onClick={toggleTheme}
-            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-            title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-            className="p-2 rounded-xl bg-stone-100/80 dark:bg-stone-900 text-stone-600 dark:text-stone-300 hover:text-amber-600 dark:hover:text-amber-400 border border-stone-200/80 dark:border-stone-800 transition-colors focus:ring-2 focus:ring-amber-500 focus:outline-none"
-          >
-            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-amber-600" />}
-          </button>
+          <p className="text-[11px] text-slate-400 hidden sm:block leading-none mt-0.5">
+            AI-Powered Contract Intelligence Platform
+          </p>
         </div>
       </div>
 
-      {/* Bottom Row: 3-Step Guided Workflow Banner */}
-      <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 rounded-2xl px-4 py-2 flex items-center justify-between overflow-x-auto text-xs font-medium">
-        <div className="flex items-center gap-1.5 shrink-0 text-amber-800 dark:text-amber-400 font-bold uppercase tracking-wider text-[10px] font-serif">
-          <span>HOW TO PROCEED:</span>
+      {/* Center: Active document indicator */}
+      {activeDocTitle && (
+        <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span className="text-xs font-medium text-slate-300 truncate max-w-[220px]">
+            {activeDocTitle}
+          </span>
+          {overallScore !== undefined && (
+            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${scoreColor}`}>
+              Score: {overallScore}/100
+            </span>
+          )}
         </div>
-        
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0 font-sans text-stone-700 dark:text-stone-300">
-          <div className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-400">
-            <span className="w-4 h-4 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px] font-mono font-bold">1</span>
-            <span>Select Case Docket</span>
-          </div>
+      )}
 
-          <ChevronRight className="w-3.5 h-3.5 text-stone-300 shrink-0" />
-
-          <div className="flex items-center gap-1.5 font-semibold text-rose-600 dark:text-rose-400">
-            <span className="w-4 h-4 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] font-mono font-bold">2</span>
-            <span>Review Clause Objections</span>
-          </div>
-
-          <ChevronRight className="w-3.5 h-3.5 text-stone-300 shrink-0" />
-
-          <div className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
-            <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-mono font-bold">3</span>
-            <span>Consult Co-Counsel / Export Brief</span>
-          </div>
+      {/* Right: Controls */}
+      <div className="flex items-center gap-2">
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/60 text-slate-400 text-xs font-medium border border-slate-700/50">
+          <Shield className="w-3.5 h-3.5 text-emerald-400" />
+          <span>WCAG AA</span>
         </div>
+
+        <button
+          onClick={toggleTheme}
+          aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+          className="p-2 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-indigo-400 hover:border-indigo-500/40 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+        >
+          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
       </div>
     </header>
   );

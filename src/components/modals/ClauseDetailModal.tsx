@@ -1,7 +1,7 @@
 import React from 'react';
 import { Clause } from '../../types/legal';
 import { RiskBadge } from '../common/RiskBadge';
-import { X, AlertOctagon, CheckCircle2, BookOpen } from 'lucide-react';
+import { X, AlertTriangle, CheckCircle2, BookOpen } from 'lucide-react';
 
 interface ClauseDetailModalProps {
   clause: Clause | null;
@@ -16,13 +16,14 @@ export const ClauseDetailModal: React.FC<ClauseDetailModalProps> = ({ clause, on
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-clause-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-court-dark/80 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-court-mahogany border border-court-border rounded-3xl max-w-xl w-full p-6 space-y-5 shadow-2xl text-stone-100 relative">
+      <div className="bg-[#1E293B] border border-slate-700/60 rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-card-md text-slate-100 relative animate-slide-up">
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-court-border pb-3">
+        <div className="flex items-center justify-between border-b border-slate-700/50 pb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400">
+            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-slate-700/60 text-slate-300 border border-slate-600/50">
               {clause.sectionTag}
             </span>
             <RiskBadge level={clause.riskLevel} />
@@ -30,54 +31,61 @@ export const ClauseDetailModal: React.FC<ClauseDetailModalProps> = ({ clause, on
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="p-1.5 rounded-xl bg-court-dark hover:bg-stone-800 text-stone-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="space-y-4 text-xs font-sans">
+        <div className="space-y-4 text-xs">
+          {/* Title + Original text */}
           <div>
-            <h3 id="modal-clause-title" className="text-base font-serif font-bold text-white mb-2">
+            <h3 id="modal-clause-title" className="text-sm font-bold text-white mb-2">
               {clause.title}
             </h3>
-            <div className="p-4 rounded-2xl bg-court-dark border border-court-border font-serif text-stone-200 leading-relaxed text-xs">
+            <div className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/50 text-slate-300 leading-relaxed">
               {clause.originalText}
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1 font-serif">
-              <BookOpen className="w-3.5 h-3.5" /> Plain 5th-Grade Legal Translation
+          {/* Plain English */}
+          <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1">
+              <BookOpen className="w-3.5 h-3.5" />
+              Plain English Explanation
             </span>
-            <p className="text-amber-100 text-sm font-medium leading-relaxed">
+            <p className="text-slate-200 font-medium leading-relaxed">
               {clause.simplifiedText}
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1 font-serif">
-              <AlertOctagon className="w-3.5 h-3.5" /> Objection Grounds & Impact
+          {/* Risk reason */}
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Risk Analysis
             </span>
             <p className="text-rose-200 leading-relaxed">{clause.riskReason}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1 font-serif">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Recommended Redline Fix
+          {/* Recommendation */}
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Recommended Redline Fix
             </span>
             <p className="text-emerald-200 font-medium leading-relaxed">{clause.recommendation}</p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="pt-2 text-right">
+        <div className="pt-1 flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition-colors shadow-md"
+            className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400/50"
           >
-            Close Examination
+            Close
           </button>
         </div>
       </div>

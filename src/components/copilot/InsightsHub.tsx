@@ -4,7 +4,7 @@ import { ExecutiveSummaryTab } from './ExecutiveSummaryTab';
 import { CopilotChatTab } from './CopilotChatTab';
 import { ClauseComparatorTab } from './ClauseComparatorTab';
 import { PrepSheetTab } from './PrepSheetTab';
-import { Scale, MessageSquare, GitCompare, FileCheck } from 'lucide-react';
+import { BarChart2, AlertTriangle, MessageSquare, FileText } from 'lucide-react';
 
 interface InsightsHubProps {
   document: LegalDocument;
@@ -15,7 +15,7 @@ interface InsightsHubProps {
   onSelectClauseByTag: (tag: string) => void;
 }
 
-export type TabType = 'SUMMARY' | 'COPILOT' | 'COMPARATOR' | 'PREP_SHEET';
+export type TabType = 'SUMMARY' | 'RISKS' | 'COPILOT' | 'PREP_SHEET';
 
 export const InsightsHub: React.FC<InsightsHubProps> = ({
   document,
@@ -27,24 +27,24 @@ export const InsightsHub: React.FC<InsightsHubProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('SUMMARY');
 
-  const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
-    { id: 'SUMMARY', label: 'Verdict', icon: <Scale className="w-4 h-4" /> },
-    { id: 'COPILOT', label: 'Co-Counsel', icon: <MessageSquare className="w-4 h-4" /> },
-    { id: 'COMPARATOR', label: 'Diff', icon: <GitCompare className="w-4 h-4" /> },
-    { id: 'PREP_SHEET', label: 'Trial Prep', icon: <FileCheck className="w-4 h-4" /> },
+  const tabs: { id: TabType; label: string; icon: React.ReactNode; badge?: number }[] = [
+    { id: 'SUMMARY',    label: 'Summary',   icon: <BarChart2 className="w-3.5 h-3.5" /> },
+    { id: 'RISKS',      label: 'Risks',     icon: <AlertTriangle className="w-3.5 h-3.5" />, badge: riskMetrics.highCount },
+    { id: 'COPILOT',    label: 'Copilot',   icon: <MessageSquare className="w-3.5 h-3.5" /> },
+    { id: 'PREP_SHEET', label: 'Prep Sheet', icon: <FileText className="w-3.5 h-3.5" /> },
   ];
 
   return (
     <aside
       role="complementary"
-      aria-label="Judicial Intelligence Hub"
-      className="w-full lg:w-[420px] shrink-0 border-l border-stone-200 dark:border-court-border bg-stone-50/70 dark:bg-court-dark flex flex-col h-full overflow-hidden"
+      aria-label="AI Insights Hub"
+      className="w-full lg:w-[400px] shrink-0 border-l border-slate-700/50 bg-[#1E293B]/40 flex flex-col h-full overflow-hidden"
     >
-      {/* Accessible ARIA Tab Bar */}
-      <div 
-        role="tablist" 
-        aria-label="Judicial Intelligence Tabs"
-        className="h-16 border-b border-stone-200 dark:border-court-border px-3 flex items-center justify-around bg-white/90 dark:bg-court-mahogany/80 backdrop-blur-md gap-1"
+      {/* Tab Bar */}
+      <div
+        role="tablist"
+        aria-label="Insights tabs"
+        className="h-12 border-b border-slate-700/50 px-2 flex items-center gap-1 bg-[#1E293B]/60 shrink-0"
       >
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -57,14 +57,21 @@ export const InsightsHub: React.FC<InsightsHubProps> = ({
               aria-controls={`tabpanel-${tab.id}`}
               tabIndex={isActive ? 0 : -1}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 px-2 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all focus:ring-2 focus:ring-amber-500 focus:outline-none ${
+              className={`flex-1 h-8 px-2 text-[11px] font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50 relative ${
                 isActive
-                  ? 'bg-amber-600 text-white shadow-sm font-serif'
-                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40'
               }`}
             >
               {tab.icon}
-              <span className="truncate">{tab.label}</span>
+              <span className="hidden sm:inline">{tab.label}</span>
+              {tab.badge !== undefined && tab.badge > 0 && (
+                <span className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center ${
+                  isActive ? 'bg-rose-500 text-white' : 'bg-rose-500/80 text-white'
+                }`}>
+                  {tab.badge}
+                </span>
+              )}
             </button>
           );
         })}
@@ -82,19 +89,19 @@ export const InsightsHub: React.FC<InsightsHubProps> = ({
           </div>
         )}
 
+        {activeTab === 'RISKS' && (
+          <div role="tabpanel" id="tabpanel-RISKS" aria-labelledby="tab-RISKS">
+            <ClauseComparatorTab document={document} />
+          </div>
+        )}
+
         {activeTab === 'COPILOT' && (
-          <div role="tabpanel" id="tabpanel-COPILOT" aria-labelledby="tab-COPILOT">
+          <div role="tabpanel" id="tabpanel-COPILOT" aria-labelledby="tab-COPILOT" className="h-full">
             <CopilotChatTab
               messages={chatMessages}
               onSendMessage={onSendMessage}
               onSelectClauseByTag={onSelectClauseByTag}
             />
-          </div>
-        )}
-
-        {activeTab === 'COMPARATOR' && (
-          <div role="tabpanel" id="tabpanel-COMPARATOR" aria-labelledby="tab-COMPARATOR">
-            <ClauseComparatorTab document={document} />
           </div>
         )}
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import { FilterRiskLevel } from '../../types/legal';
-import { Filter } from 'lucide-react';
 
 interface RiskFilterProps {
   currentFilter: FilterRiskLevel;
@@ -11,31 +10,60 @@ interface RiskFilterProps {
 export const RiskFilter: React.FC<RiskFilterProps> = ({ currentFilter, onFilterChange, counts }) => {
   const total = counts.highCount + counts.ambiguousCount + counts.greenCount;
 
-  const filters: { id: FilterRiskLevel; label: string; count: number; activeBg: string }[] = [
-    { id: 'ALL', label: 'All Clauses', count: total, activeBg: 'bg-amber-600 text-white' },
-    { id: 'HIGH', label: 'Objections', count: counts.highCount, activeBg: 'bg-rose-600 text-white' },
-    { id: 'AMBIGUOUS', label: 'Ambiguous', count: counts.ambiguousCount, activeBg: 'bg-amber-700 text-white' },
-    { id: 'GREEN', label: 'Safe Terms', count: counts.greenCount, activeBg: 'bg-emerald-600 text-white' },
+  const filters: {
+    id: FilterRiskLevel;
+    label: string;
+    count: number;
+    activeClass: string;
+    dotClass: string;
+  }[] = [
+    {
+      id: 'ALL',
+      label: 'All',
+      count: total,
+      activeClass: 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300',
+      dotClass: 'bg-indigo-400',
+    },
+    {
+      id: 'HIGH',
+      label: 'High Risk',
+      count: counts.highCount,
+      activeClass: 'bg-rose-500/15 border-rose-500/40 text-rose-300',
+      dotClass: 'bg-rose-400',
+    },
+    {
+      id: 'AMBIGUOUS',
+      label: 'Medium',
+      count: counts.ambiguousCount,
+      activeClass: 'bg-amber-500/15 border-amber-500/40 text-amber-300',
+      dotClass: 'bg-amber-400',
+    },
+    {
+      id: 'GREEN',
+      label: 'Safe',
+      count: counts.greenCount,
+      activeClass: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
+      dotClass: 'bg-emerald-400',
+    },
   ];
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 font-serif flex items-center gap-1.5">
-          <Filter className="w-3.5 h-3.5" />
-          Filter Objections
-        </label>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          Risk Filter
+        </p>
         {currentFilter !== 'ALL' && (
           <button
             onClick={() => onFilterChange('ALL')}
-            className="text-[11px] text-amber-600 dark:text-amber-400 hover:underline font-semibold"
+            className="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
           >
             Reset
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {filters.map((f) => {
           const isActive = currentFilter === f.id;
           return (
@@ -43,19 +71,17 @@ export const RiskFilter: React.FC<RiskFilterProps> = ({ currentFilter, onFilterC
               key={f.id}
               onClick={() => onFilterChange(f.id)}
               aria-pressed={isActive}
-              tabIndex={0}
-              className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all focus:ring-2 focus:ring-amber-500 focus:outline-none ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50 ${
                 isActive
-                  ? `${f.activeBg} border-transparent shadow-sm`
-                  : 'bg-white dark:bg-court-mahogany border-stone-200 dark:border-court-border text-stone-700 dark:text-stone-300 hover:border-stone-300 dark:hover:border-stone-700'
+                  ? f.activeClass
+                  : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:border-slate-600/60 hover:text-slate-300'
               }`}
             >
-              <span className="truncate">{f.label}</span>
-              <span
-                className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
-                }`}
-              >
+              <span className={`w-1.5 h-1.5 rounded-full ${isActive ? f.dotClass : 'bg-slate-500'}`} />
+              <span>{f.label}</span>
+              <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
+                isActive ? 'bg-white/10' : 'bg-slate-700/60 text-slate-500'
+              }`}>
                 {f.count}
               </span>
             </button>

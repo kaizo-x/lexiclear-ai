@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Clause } from '../../types/legal';
 import { ClausePopover } from './ClausePopover';
-import { AlertOctagon, Scale, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface ClauseHighlightOverlayProps {
   clause: Clause;
@@ -20,25 +20,31 @@ export const ClauseHighlightOverlay: React.FC<ClauseHighlightOverlayProps> = ({
 
   const styleConfig = {
     HIGH: {
-      bg: 'bg-rose-500/10 dark:bg-rose-500/15 border-l-4 border-rose-600 text-stone-900 dark:text-stone-100',
-      activeBorder: 'ring-2 ring-rose-500 shadow-glow-objection',
-      tagBg: 'bg-rose-600 text-white',
-      badgeText: 'OBJECTION: High Risk Term',
-      icon: <AlertOctagon className="w-3.5 h-3.5 text-rose-600" />,
+      rowBg: 'bg-rose-500/8 hover:bg-rose-500/12',
+      leftBorder: 'border-l-2 border-rose-500',
+      selectedBg: 'bg-rose-500/15 ring-1 ring-rose-500/40',
+      tagClass: 'bg-rose-500/20 text-rose-400 border border-rose-500/30',
+      badgeClass: 'text-rose-400',
+      badgeText: 'High Risk',
+      icon: <AlertTriangle className="w-3.5 h-3.5" />,
     },
     AMBIGUOUS: {
-      bg: 'bg-amber-500/10 dark:bg-amber-500/15 border-l-4 border-amber-600 text-stone-900 dark:text-stone-100',
-      activeBorder: 'ring-2 ring-amber-500',
-      tagBg: 'bg-amber-600 text-white',
-      badgeText: 'REVIEW: Ambiguous Term',
-      icon: <Scale className="w-3.5 h-3.5 text-amber-600" />,
+      rowBg: 'bg-amber-500/8 hover:bg-amber-500/12',
+      leftBorder: 'border-l-2 border-amber-500',
+      selectedBg: 'bg-amber-500/15 ring-1 ring-amber-500/40',
+      tagClass: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+      badgeClass: 'text-amber-400',
+      badgeText: 'Medium Risk',
+      icon: <AlertCircle className="w-3.5 h-3.5" />,
     },
     GREEN: {
-      bg: 'bg-emerald-500/10 dark:bg-emerald-500/15 border-l-4 border-emerald-600 text-stone-900 dark:text-stone-100',
-      activeBorder: 'ring-2 ring-emerald-500',
-      tagBg: 'bg-emerald-600 text-white',
-      badgeText: 'SAFE: Standard Favorable',
-      icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />,
+      rowBg: 'bg-emerald-500/5 hover:bg-emerald-500/8',
+      leftBorder: 'border-l-2 border-emerald-500',
+      selectedBg: 'bg-emerald-500/12 ring-1 ring-emerald-500/30',
+      tagClass: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+      badgeClass: 'text-emerald-400',
+      badgeText: 'Standard',
+      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
     },
   };
 
@@ -48,48 +54,41 @@ export const ClauseHighlightOverlay: React.FC<ClauseHighlightOverlayProps> = ({
     <div
       tabIndex={0}
       role="region"
-      aria-label={`Clause ${clause.sectionTag}: ${clause.title}`}
-      onMouseEnter={() => {
-        setShowPopover(true);
-        onHover(clause.id);
-      }}
-      onMouseLeave={() => {
-        setShowPopover(false);
-        onHover(null);
-      }}
+      aria-label={`${clause.sectionTag}: ${clause.title}`}
+      onMouseEnter={() => { setShowPopover(true); onHover(clause.id); }}
+      onMouseLeave={() => { setShowPopover(false); onHover(null); }}
       onClick={() => onSelect(clause.id)}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect(clause.id);
-        }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(clause.id); }
       }}
-      className={`relative group my-3 p-4 rounded-r-2xl transition-all cursor-pointer ${config.bg} ${
-        isSelected ? config.activeBorder : ''
-      } focus:ring-2 focus:ring-amber-500 focus:outline-none`}
+      className={`relative group px-5 py-4 cursor-pointer transition-all ${config.leftBorder} ${
+        isSelected ? config.selectedBg : config.rowBg
+      } focus:outline-none focus:ring-2 focus:ring-indigo-500/50`}
     >
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2">
-          <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${config.tagBg}`}>
+      {/* Clause Header */}
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${config.tagClass} shrink-0`}>
             {clause.sectionTag}
           </span>
-          <span className="text-xs font-bold font-sans text-stone-900 dark:text-stone-100">
+          <span className="text-xs font-semibold text-slate-200 truncate">
             {clause.title}
           </span>
         </div>
-        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-stone-600 dark:text-stone-300">
+        <span className={`inline-flex items-center gap-1 text-[11px] font-semibold shrink-0 ${config.badgeClass}`}>
           {config.icon}
-          <span>{config.badgeText}</span>
+          <span className="hidden sm:inline">{config.badgeText}</span>
         </span>
       </div>
 
-      <p className="text-sm font-serif leading-relaxed text-stone-900 dark:text-stone-100 selection:bg-amber-500 selection:text-white">
+      {/* Clause Text */}
+      <p className="text-sm leading-relaxed text-slate-300 line-clamp-3 group-hover:line-clamp-none transition-all">
         {clause.originalText}
       </p>
 
-      {/* Instant Hover Popover */}
+      {/* Hover Popover */}
       {showPopover && (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-50 pointer-events-auto">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-50 pointer-events-auto">
           <ClausePopover clause={clause} onSelectClause={onSelect} />
         </div>
       )}
